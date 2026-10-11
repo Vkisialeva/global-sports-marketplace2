@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int                    @id @default(autoincrement())
+  name           String
+  email          String                 @unique
+  passwordHash   String
+  role           String                 @default("USER")
+  createdAt      DateTime               @default(now())
+  applications   JobApplication[]
+  jobs           JobPosting[]
+  athleteProfile StudentAthleteProfile?
+}
+
+model JobPosting {
+  id           Int              @id @default(autoincrement())
+  title        String
+  description  String
+  location     String
+  sport        String
+  createdAt    DateTime         @default(now())
+  postedById   Int
+  applications JobApplication[]
+  postedBy     User             @relation(fields: [postedById], references: [id])
+}
+
+model JobApplication {
+  id          Int        @id @default(autoincrement())
+  message     String
+  status      String     @default("PENDING")
+  createdAt   DateTime   @default(now())
+  applicantId Int
+  jobId       Int
+  applicant   User       @relation(fields: [applicantId], references: [id])
+  job         JobPosting @relation(fields: [jobId], references: [id])
+
+  @@unique([applicantId, jobId])
+}
+
+model StudentAthleteProfile {
+  id             Int      @id @default(autoincrement())
+  fullName       String
+  country        String
+  graduationYear Int
+  ranking        String?
+  biography      String?
+  createdAt      DateTime @default(now())
+  userId         Int      @unique
+  user           User     @relation(fields: [userId], references: [id])
+}
